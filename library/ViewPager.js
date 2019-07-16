@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import {
   View,
+  FlatList,
   Platform
 } from 'react-native';
 import PropTypes from 'prop-types';
-import ListView from 'deprecated-react-native-listview';
 
 import Scroller from 'react-native-scroller';
 import {createResponder} from 'react-native-gesture-responder';
@@ -45,11 +45,10 @@ export default class ViewPager extends Component {
   constructor(props) {
     super(props);
 
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
     this.state = {
       width: 0,
       height: 0,
-      dataSource: ds.cloneWithRows([])
+      dataSource: []
     }
 
     this.scroller = new Scroller(true, (dx, dy, scroller) => {
@@ -110,7 +109,7 @@ export default class ViewPager extends Component {
       if (!list) {
         list = [];
       }
-      dataSource = dataSource.cloneWithRows(list);
+      dataSource = list;
       this.pageCount = list.length;
     }
 
@@ -124,23 +123,23 @@ export default class ViewPager extends Component {
         {...this.props}
         style={[this.props.style, {flex: 1}]}
         {...gestureResponder}>
-        <ListView
+        <FlatList
           style={{flex: 1}}
           ref='innerListView'
           scrollEnabled={false}
           horizontal={true}
           enableEmptySections={true}
-          dataSource={dataSource}
-          renderRow={this.renderRow.bind(this)}
+          data={dataSource}
+          renderItem={(data) => this.renderRow.bind(data)}
           onLayout={this.onLayout.bind(this)}
         />
       </View>
     );
   }
 
-  renderRow(rowData, sectionID, rowID, highlightRow) {
+  renderRow(data, sectionID, highlightRow) {
     const {width, height} = this.state;
-    let page = this.props.renderPage(rowData, rowID, {width, height});
+    let page = this.props.renderPage(data, data.index, {width, height});
 
     let newProps = {
       ...page.props,
@@ -153,7 +152,7 @@ export default class ViewPager extends Component {
     };
     const element = React.createElement(page.type, newProps);
 
-    if (this.props.pageMargin > 0 && rowID > 0) {
+    if (this.props.pageMargin > 0 && data.index > 0) {
       //Do not using margin style to implement pageMargin. The ListView seems to calculate a wrong width for children views with margin.
       return (
         <View style={{width: width + this.props.pageMargin, height: height, alignItems: 'flex-end'}}>
@@ -173,7 +172,7 @@ export default class ViewPager extends Component {
       this.layoutChanged = true;
       this.setState({
         width, height,
-        dataSource: (new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})).cloneWithRows([])
+        dataSource: []
       });
     }
   }
