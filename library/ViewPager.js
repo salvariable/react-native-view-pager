@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import {
   View,
-  FlatList,
   Platform
 } from 'react-native';
 import PropTypes from 'prop-types';
+import ListView from 'deprecated-react-native-listview';
 
 import Scroller from 'react-native-scroller';
 import {createResponder} from 'react-native-gesture-responder';
@@ -45,12 +45,11 @@ export default class ViewPager extends Component {
   constructor(props) {
     super(props);
 
-    // const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
     this.state = {
       width: 0,
       height: 0,
-      // dataSource: ds.cloneWithRows([])
-      dataSource: []
+      dataSource: ds.cloneWithRows([])
     }
 
     this.scroller = new Scroller(true, (dx, dy, scroller) => {
@@ -111,7 +110,7 @@ export default class ViewPager extends Component {
       if (!list) {
         list = [];
       }
-      dataSource = list;
+      dataSource = dataSource.cloneWithRows(list);
       this.pageCount = list.length;
     }
 
@@ -125,14 +124,14 @@ export default class ViewPager extends Component {
         {...this.props}
         style={[this.props.style, {flex: 1}]}
         {...gestureResponder}>
-        <FlatList
+        <ListView
           style={{flex: 1}}
           ref='innerListView'
           scrollEnabled={false}
           horizontal={true}
           enableEmptySections={true}
-          data={dataSource}
-          renderItem={this.renderRow.bind(this)}
+          dataSource={dataSource}
+          renderRow={this.renderRow.bind(this)}
           onLayout={this.onLayout.bind(this)}
         />
       </View>
@@ -174,7 +173,7 @@ export default class ViewPager extends Component {
       this.layoutChanged = true;
       this.setState({
         width, height,
-        dataSource: []
+        dataSource: (new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})).cloneWithRows([])
       });
     }
   }
